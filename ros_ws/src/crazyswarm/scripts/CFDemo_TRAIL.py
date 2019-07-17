@@ -49,11 +49,13 @@ from scipy.optimize import linear_sum_assignment
 swarm = Crazyswarm()
 timeHelper = swarm.timeHelper
 allcfs = swarm.allcfs
+trajectory = uav_trajectory.Trajectory()
 breathe = 1.0
 filepath = '/home/trailCrazyswarm/crazyswarm/ros_ws/src/crazyswarm/scripts'
 
+
 def main():
-	
+		
 	while True:
 		print("What do you want to do?")
 		print("Choose: takeoff, land, hover, static, dynamic, waypoints, goto, //follow, or avoid")
@@ -112,7 +114,7 @@ def landCallback():
 	cftoGoals(startHoverMatrix)
 		
 	allcfs.land(targetHeight=0.005, duration=3.0)
-
+	timeHelper.sleep(3.0)
 
 def cftoGoals(goalPositionMatrix):
 	robotPositionMatrix = []
@@ -151,8 +153,9 @@ def cftoGoals(goalPositionMatrix):
 	for c in range(numGoal):
 		print ("cf.goTo({},0,{})").format(robotGoalMatrix[c], duration[c][c])
 		allcfs.crazyflies[c].goTo(robotGoalMatrix[c], 0, duration[c][c])
-		
-	timeHelper.sleep((np.max(duration[:,0]))*0.95)
+	
+	print np.diag(duration)
+	timeHelper.sleep((np.max(np.diag(duration)))+ 0.2)
 
 def hoverCallback():
 	initpos = []		
@@ -217,14 +220,12 @@ def dynamic():
 	print (os.listdir(("{0}/{1}").format(filepath, folder)))
 	trajfile = raw_input()
 	
-
-	traj = uav_trajectory.Trajectory()
-	traj.loadcsv(("{0}/{1}.csv").format(folder, trajfile))
+	trajectory.loadcsv(("{0}/{1}.csv").format(folder, trajfile))
 	
-	timeScale = 1.5
+	timeScale = 1.0
 	
 	for cf in allcfs.crazyflies:
-		cf.uploadTrajectory(0, 0, traj)
+		cf.uploadTrajectory(0, 0, trajectory)
 	
 	print "Back to initial? (y/n)"
 	goBack = raw_input()
@@ -236,14 +237,14 @@ def dynamic():
 		cftoGoals(pos)
 	
 	allcfs.startTrajectory(0, timescale=timeScale)
-	timeHelper.sleep(traj.duration * timeScale)
+	timeHelper.sleep(trajectory.duration * timeScale)
 	
 	print "Reverse? (y/n)"
 	goReverse = raw_input()
 	
 	if goReverse == 'y':
 		allcfs.startTrajectory(0, timescale=timeScale, reverse=True)
-		timeHelper.sleep(traj.duration * timeScale)
+		timeHelper.sleep(trajectory.duration * timeScale)
 	
 def waypoints():
 	#make sure the cfs (by id) specified in the waypoint file are active when testing 
@@ -253,7 +254,7 @@ def waypoints():
 	print (os.listdir(("{0}/{1}").format(filepath, folder)))
 	wayfile = raw_input()
 	
-
+	#TODO: find way to update the CFAgents based on active cfs instead of editing csv file
 	data = np.loadtxt(("{0}/{1}.csv").format(folder, wayfile), skiprows=1, delimiter=',')
 	
 	data[data[:,0].argsort()]
@@ -305,8 +306,28 @@ def waypoints():
 
 	
 def follow():
+	#target Input
+	print "Which CF is the target? (CFbyId)"
+	targetCFid = int(raw_input())
+	targetCF = allcfs.crazyfliesById[targetCFid]
+	
+	##might want to use waypoints for this?? then similar to 4spin 
+	#each cf takes on the pos of the one before it	
+	#follow fxn
+	#plot trajectory or path for one CF
+	# and send CF to that 
+
+##MAKE in a separate file
+def avoid():
 	cfs = allcfs.crazyflies
-	print "Send crazyflies to random locations? (y/n)"
+	
+	#target Input
+	print "Which CF is the target? (CFbyId)"
+	targetCFid = int(raw_input())
+	targetCF = allcfs.crazyfliesById[targetCFid]
+
+	#send CFs to different heights
+	print "Send crazyflies to random heights? (y/n)"
 	randgo = raw_input()
 	
 	if randgo == 'y':
@@ -334,11 +355,61 @@ def follow():
 			
 		for cf in allcfs.crazyflies:
 			startHoverMatrix = np.array(cf.initialPosition) + np.array([0, 0, heights[cf]])
-			cf.goTo(startHoverMatrix, 0, 7.0)
+			cf.goTo(startHoverMatrix, 0, 5.0)
 	
 		timeHelper.sleep(5.0) 
-
-#def avoid():
+	
+		
+	#send target to starting point
+	toStart = raw_input("Send to start? (y/n)")
+	
+	if toStart == 'y':
+		targetCF.goTo(np.array([2.0, -2.0, 1.0]), 0, 5.0)
+		timeHelper.sleep(5.0)
+	
+	#use trajectory
+	goTraj = raw_input("Use a trajectory? (y/n)")
+	
+	if goTraj == 'y':
+		folder = 'trajfiles'	
+		
+		print "Input .csv filename for trajectory path"
+		print (os.listdir(("{0}/{1}").format(filepath, folder)))
+		trajfile = raw_input()
+		
+		trajectory.loadcsv(("{0}/{1}.csv").format(folder, trajfile))
+				
+		targetCF.uploadTrajectory(0, 0, trajectory)
+	
+	print("Press button to start avoiding")
+	swarm.input.waitUntilButtonPressed()
+	
+	targetCF.startTrajectory(0, timescale=1.0)
+	timeHelper.sleep(trajectory.duration)
+	##how can we make this happen during the trajectory?
+	##or should we not use the preset functions in order to be able to go through each thing
+	##in this case: do it in a different file pls  
+	#for cf in allcfs.crazyflies:
+		#if cf.id == targetCF:
+			#continue
+		#else:
+			#print np.array(cf.position())
+			#targetcf = np.array(targetCF.position())
+			#currentcf = np.array(cf.position())
+			##determine if it's too close or not
+			##find nicer way to do this
+			#if (targetcf[0] - currentcf[0]) <= 0.5:
+				#print targetcf[0] - currentcf[0]
+				#cf.goTo(np.array(cf.position()) - np.array([0.2, 0, 0]), 0, 1.0)
+			#elif (targetcf[1] - currentcf[1]) <= 0.5:
+				#print targetcf[1] - currentcf[1]
+				#cf.goTo(np.array(cf.position()) - np.array([0.0, 0.2, 0]), 0, 1.0)
+	##loop that checks where the target Cf is relative to each CF 
+	##currently only compares the initial pos of the target? 
+	#timeHelper.sleep(10.0)	
+	
+	#is there a way to teleop crazyflies instead of sending to positions 
+	#move towards one axis by a given value instead of having to goTo
 
 
 if __name__ == "__main__":
