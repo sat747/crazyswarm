@@ -1,0 +1,66 @@
+<launch>
+
+  <rosparam command="load" file="$(find crazyswarm)/launch/crazyflieTypes.yaml" />
+  <rosparam command="load" file="$(find crazyswarm)/launch/crazyflies.yaml" />
+
+  <node pkg="crazyswarm" type="crazyswarm_server" name="crazyswarm_server" output="screen" args="">
+    <rosparam>
+      firmware: "crazyswarm" # one of "crazyswarm", "bitcraze"
+      broadcast_address: "FFE7E7E7E7"
+      world_frame: "/world"
+      genericLogTopics: ["log1"]
+      genericLogTopicFrequencies: [10]
+      # genericLogTopic_log1_Variables: ["ekfprof.usec_setup", "ekfprof.usec_innov", "ekfprof.usec_gain", "ekfprof.usec_corr", "ekfprof.usec_cov"]
+      # genericLogTopic_log1_Variables: ["profiling.usec_ekf", "profiling.usec_traj", "profiling.usec_ctrl", "profiling.usec_idle"]
+      # genericLogTopic_log1_Variables: ["stabilizer.x", "ctrltarget.x", "vicon.x", "stabilizer.z", "ctrltarget.z", "vicon.z"]
+      # genericLogTopic_log1_Variables: ["stateEstimate.roll", "ctrlMel.rolld"]
+      genericLogTopic_log1_Variables: ["ctrlStat.edist"]
+      # genericLogTopic_log1_Variables: ["stateEstimate.yaw", "ctrltarget.yaw", "stateEstimate.x", "ctrltarget.x"] #, "ctrltarget.x", "stateEstimate.roll", "ctrlMel.rolld"]
+      firmwareParams: # for all (independent of type)
+        commander:
+          enHighLevel: 1
+        stabilizer:
+          estimator: 3 # 1: complementary, 2: kalman, 3: kalmanUSC (only crazyswarm firmware)
+          controller: 2 # 1: PID, 2: mellinger
+        ring:
+          effect: 7 # 6: double spinner, 7: solid color, 16: packetRate
+          solidBlue: 56 # if set to solid color
+          solidGreen: 38 # if set to solid color
+          solidRed: 163 # if set to solid color
+          headlightEnable: 0
+        #ekf:
+        #  ext_var_xy: 1.5e-7 # 1e-7 # 1.5e-7
+        #  ext_var_vel: 2e-4 # 2e-4
+        #  ext_var_q: 4.5e-3 # 2e-3 # 4.5e-3
+        #  gyro_var_xy: 0.2e-2 # 0.2e-4
+        #  gyro_var_z: 0.2e-2 # 0.2e-4
+        #  acc_var_xyz: 2.4e-3 # 2.4e-3
+      # tracking
+      motion_capture_type: "qualisys" #SAMMY CHANGED from vicon to qualisys # one of none,vicon,optitrack,qualisys,vrpn
+      object_tracking_type: "libobjecttracker" # one of motionCapture,libobjecttracker
+      #vicon_host_name: "vicon"
+      # optitrack_local_ip: "localhost"
+      # optitrack_server_ip: "optitrack"
+      qualisys_host_name: "155.247.51.108"
+      qualisys_base_port: 22222 
+      # vrpn_host_name: "vicon" #Commented out
+      save_point_clouds: ~/pointCloud.ot
+      print_latency: False
+      write_csvs: False
+      force_no_cache: False
+      enable_parameters: True
+      enable_logging: False
+    </rosparam>
+  </node>
+
+
+<node name="TRAIL_multitalker" pkg="crazyswarm" type="TRAIL_multitalker.py" output="screen" args="">
+  <rosparam command="load" file="$(find crazyswarm)/launch/Demo.yaml" />
+</node>
+
+
+<node name="TRAIL_multilistener" pkg="crazyswarm" type="TRAIL_multilistener.py" output="screen" args="--sim" cwd="node">
+</node>
+
+
+</launch>
