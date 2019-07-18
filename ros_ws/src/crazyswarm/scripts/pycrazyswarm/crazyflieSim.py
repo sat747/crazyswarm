@@ -70,8 +70,6 @@ class Crazyflie:
         self.planner.lastKnownPosition = arr2vec(initialPosition)
         self.groupMask = 0
         self.trajectories = dict()
-
-        # for visualization - default to blueish-grey
         self.ledRGB = (0.5, 0.5, 1)
 
     def setGroupMask(self, groupMask):

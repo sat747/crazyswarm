@@ -11,10 +11,10 @@ def main():
 
     for cf in allcfs.crazyflies:
         print(cf.id)
-        cf.takeoff(1.0, 2.5)
+        cf.takeoff(1.0, 5.5)
         print("press button to continue")
         swarm.input.waitUntilButtonPressed()
-        cf.land(0.04, 2.5)
+        cf.land(0.04, 5.5)
 
 
 if __name__ == "__main__":

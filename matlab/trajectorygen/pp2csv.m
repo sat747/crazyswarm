@@ -1,9 +1,11 @@
-function poly2csv(pp, filename)
+function pp2csv(pp, filename)
 	[breaks, coefs, npieces, order, dim] = unmkpp(pp);
 	assert(dim == 4);
 	coefs = reshape(coefs, 4, npieces, order);
 
-	fid = fopen(filename, 'w');
+	filedir = '/home/trailCrazyswarm/crazyswarm/ros_ws/src/crazyswarm/scripts/trajfiles/';
+    file = fullfile(filedir, filename);
+    fid = fopen(file, 'w');
 	format long;
 	vars = {'x' 'y' 'z' 'yaw'};
 	fprintf(fid, 'duration,');
