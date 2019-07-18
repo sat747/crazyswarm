@@ -4,8 +4,8 @@ function pp2csv(pp, filename)
 	coefs = reshape(coefs, 4, npieces, order);
 
 	filedir = '/home/trailCrazyswarm/crazyswarm/ros_ws/src/crazyswarm/scripts/trajfiles/';
-    file = fullfile(filedir, filename);
-    fid = fopen(file, 'w');
+    filename = fullfile(filedir, filename);
+    fid = fopen(filename, 'w');
 	format long;
 	vars = {'x' 'y' 'z' 'yaw'};
 	fprintf(fid, 'duration,');

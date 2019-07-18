@@ -1,10 +1,7 @@
 function filename = pathgen(name, npts, px, py, pz)
     %general path trajectory generation
-
-    clear all
-    clc
     %number of points
-    npieces = npts - 1;
+    npcs = npts - 1;
 
     %polynomial degree
     degree = 7;  
@@ -32,12 +29,12 @@ function filename = pathgen(name, npts, px, py, pz)
     t_takeoff = 2;
     %t_settle = 2;
     %t_circle = 1;
-    intervals = [t_takeoff 1 * ones(1,npieces-1)];
+    intervals = [t_takeoff 1 * ones(1,npcs-1)];
     knot = [0 cumsum(intervals)]; %times of waypoints
 
     [soln, free] = pp_waypoints(knot, degree, continuity, x, 'monomial');
     fprintf('%d free dimensions\n', size(free, 2));
 
     pp = polyvec2pp(knot, dim, soln);
-    pp2csv(pp, name +'.csv');
+    pp2csv(pp, strcat(name,".csv"));
 end

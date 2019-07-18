@@ -79,8 +79,8 @@ def manualTeleop():
 	#TODO: There has to be a more elegant way to do this :((
 	#Try using turtle teleop_twist? (figure out how to incorporate while still maintaining the loop)
 	while True:
-		flyDir = raw_input("Flight direction:")
-		
+		distanceCheck()
+		flyDir = raw_input("Flight direction:")		
 		if flyDir == 'w':
 			targetCF.goTo((np.array(targetCF.position()) + np.array([step, 0, 0])), 0, spd)
 		elif flyDir == 's':
@@ -97,9 +97,8 @@ def manualTeleop():
 			targetCF.land(targetHeight=0.003, duration=4.0)
 			break
 		else:
-			continue
-		
-		distanceCheck()
+			continue		
+
 		timeHelper.sleep(0.5)
 		
 def distanceCheck():
@@ -107,40 +106,29 @@ def distanceCheck():
 	#make an array/matrix with all the current positions
 	#go through each value (by x, y, z) 
 	#make sure nothing is within a 0.3 range ?
-	currentPositionMatrix = []
-	
-	for cf in cfs:
-		currentPositionMatrix.append(cf.position())
-	
-	print currentPositionMatrix
-	
-	i = 0
-	j = 0	
+		
 	for cf in cfs: #baseCF row i
 		basecf = cf.id
 		for cf in cfs: #comparedCF row j
-			current
-			if cf.id == basecf: #skips itself
+			currentcf = cf.id
+			if currentcf == basecf: #skips itself
 				continue
 			else:
-				dist = distance.euclidean(np.array(allcfs.crazyfliesById[basecf].position()), np.array(cf.position()))
-				
-				if dist < 0.3:
+				dist = distance.euclidean(np.array(allcfs.crazyfliesById[basecf].position()), np.array(allcfs.crazyfliesById[currentcf].position()))
+				if dist <= 0.3:
 					##TODO: if they're too close, adjust one to a certain distance away
 					##figure out how to come up with that?
-					#diffx = currentPositionMatrix[i][0] - currentPositionMatrix[j][0] 
-					###error: list index out of range?? figure that out pls
-					#diffy = currentPositionMatrix[i][1] - currentPositionMatrix[j][1] 
-					#diffz = currentPositionMatrix[i][2] - currentPositionMatrix[j][2]
-					#print diffx, diffy, diffz
-					print 'CF',basecf,"is too close to CF",cf.id
-					cf.goTo((np.array(cf.position()) + np.array([- step, - step, - step])), 0, 0.5)
+					print 'CF',basecf,"is too close to CF",cf.id, dist
+					allcfs.crazyfliesById[currentcf].goTo((np.array(cf.position()) + np.array([0, 0, -0.2])), 0, 1)
 					#cf is referring to both base and current?? 
-				
-			j = j + 1
-		currentPositionMatrix.append(cf.position())
-		i = i + 1
-	
+				else:
+					continue
+			print basecf, currentcf, dist
+
+	##^^ interesting things are happening 
+	#something about the loops isn't happening in the right order 
+	#figure that out
+	#print each process and maybe slow things down??
 	
 def randHeights():
 	rand_heights = None
