@@ -1,0 +1,107 @@
+crazyflies:
+  - id: 1
+    channel: 80
+    initialPosition: [-0.5, 0.4, 0.0]
+    type: default
+  - id: 2
+    channel: 90
+    initialPosition: [-0.5, 0.0, 0.0]
+    type: default
+  - id: 3
+    channel: 100
+    initialPosition: [-0.5, -0.4, 0.0]
+    type: default
+  - id: 4
+    channel: 80
+    initialPosition: [-1.0, 0.4, 0.0]
+    type: default
+  - id: 5
+    channel: 90
+    initialPosition: [-1.0, 0.0, 0.0]
+    type: default
+  - id: 6
+    channel: 100
+    initialPosition: [-1.0, -0.4, 0.0]
+    type: default
+  - id: 7
+    channel: 80
+    initialPosition: [-1.5, 0.4, 0.0]
+    type: default
+  - id: 8
+    channel: 90
+    initialPosition: [-1.5, 0.0, 0.0]
+    type: default
+  - id: 9
+    channel: 100
+    initialPosition: [-1.5, -0.4, 0.0]
+    type: default
+  - id: 10
+    channel: 80
+    initialPosition: [-2.0, 0.8, -0.4]
+    type: default
+  - id: 11
+    channel: 90
+    initialPosition: [-2.0, 0.4, -0.4]
+    type: default
+  - id: 12
+    channel: 100
+    initialPosition: [-2.0, 0.0, -0.4]
+    type: default
+  - id: 13
+    channel: 80
+    initialPosition: [-2.0, -0.4, -0.4]
+    type: default
+  - id: 14
+    channel: 90
+    initialPosition: [-2.0, -0.8, -0.4]
+    type: default
+  - id: 15
+    channel: 100
+    initialPosition: [-2.5, 0.8, -0.4]
+    type: default
+  - id: 16
+    channel: 80
+    initialPosition: [-2.5, 0.4, -0.4]
+    type: default
+  - id: 17
+    channel: 90
+    initialPosition: [-2.5, 0.0, -0.4]
+    type: default
+  - id: 18
+    channel: 100
+    initialPosition: [-2.5, -0.4, -0.4]
+    type: default
+  - id: 19
+    channel: 80
+    initialPosition: [-2.5, 0.4, -0.4]
+    type: default
+  - id: 20
+    channel: 90
+    initialPosition: [-3.0, 0.0, -0.4]
+    type: default
+  - id: 21
+    channel: 100
+    initialPosition: [-3.0, -0.4, -0.4]
+    type: default
+  - id: 22
+    channel: 80
+    initialPosition: [-3.0, 0.8, -0.4]
+    type: default
+  - id: 23
+    channel: 90
+    initialPosition: [-3.0, 0.4, -0.4]
+    type: default
+  - id: 24
+    channel: 100
+    initialPosition: [-3.0, 0.0, -0.4]
+    type: default
+ 
+
+#	   0.4   0  -0.4
+#	    1    2    3  	  -0.5
+#	    4    5 	  6  	  -1.0
+#	    7    8    9  	  -1.5
+# 0.8  				 -0.8		z = -0.4
+# 10   11   12   13   14  -2.0
+# 15   16   17   18   19  -2.5
+# 20   21   22   23   24  -3.0
