@@ -1,5 +1,16 @@
 function filename = pathgen(name, npts, px, py, pz)
     %general path trajectory generation
+    
+    if iscell(px) && iscell(py) && iscell(pz)
+        X = cellfun(@double, px);
+        Y = cellfun(@double, py);
+        Z = cellfun(@double, pz);
+    else
+        X = px;
+        Y = py;
+        Z = pz;
+    end
+    
     %number of points
     npcs = npts - 1;
 
@@ -23,13 +34,13 @@ function filename = pathgen(name, npts, px, py, pz)
     % x(:,3,:) = x(:,2,:);         % stabilization period. don't move
 
     for i=2:npts
-        x(1,i,:) = [px(i-1) py(i-1) pz(i-1) 0];  % position [x y z yaw]
+        x(1,i,:) = [X(i-1) Y(i-1) Z(i-1) 0];  % position [x y z yaw]
     end
 
-    t_takeoff = 2;
-    %t_settle = 2;
+    %t_takeoff = 2;
+    t_settle = 1;
     %t_circle = 1;
-    intervals = [t_takeoff 1 * ones(1,npcs-1)];
+    intervals = [t_settle 1 * ones(1,npcs-1)];
     knot = [0 cumsum(intervals)]; %times of waypoints
 
     [soln, free] = pp_waypoints(knot, degree, continuity, x, 'monomial');
@@ -37,4 +48,6 @@ function filename = pathgen(name, npts, px, py, pz)
 
     pp = polyvec2pp(knot, dim, soln);
     pp2csv(pp, strcat(name,".csv"));
+    
+    filename = name;
 end

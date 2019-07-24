@@ -6,6 +6,8 @@ avoid target script
 - loads path for targetCF (trajectory or teleop) 
 - loops to check current position of targetCF relative to other present CFs
 - adjusts accordingly to avoid collisions 
+
+#movements are (TODO) controlled by cf_teleop.py imported from scripts folder
 '''
 
 
@@ -20,6 +22,7 @@ import random
 from pycrazyswarm import * #crazyswarm 
 import uav_trajectory #trajectory classes
 from waypoints import Waypoint #waypoint class
+import cf_teleop
 
 #for formation coordinates
 from geometry_msgs.msg import Pose
@@ -67,13 +70,14 @@ def main():
 	
 	timeHelper.sleep(5.0)
 	
-	targetflight = raw_input("Generate trajectory or control manually? (traj/tele)")	
+	targetflight = raw_input("Generate trajectory or control manually? (keys/info)")	
 	
-	if targetflight == 'traj':
-		trajPath()
-	elif targetflight == 'tele':
+	if targetflight == 'info':
+		inputTeleop()
+	elif targetflight == 'keys':
 		manualTeleop()
 	
+	allcfs.land(targetHeight = 0.003, duration=4.0)
 
 def manualTeleop():
 	#TODO: There has to be a more elegant way to do this :((
@@ -101,35 +105,74 @@ def manualTeleop():
 
 		timeHelper.sleep(0.5)
 		
+def inputTeleop():	
+	while True:
+		distanceCheck()
+		print "Input info:"
+		dist = float(raw_input("Distance:"))
+		dirx = float(raw_input("Direction (in degrees):"))
+		dura = float(raw_input("Duration:"))
+		cftele = cf_teleop.Teleop(targetCFid, dist, dirx, dura)
+		dx = cftele.dx()
+		dy = cftele.dy()
+		print dx, dy
+		if dist >= 0:
+			targetCF.goTo((np.array(targetCF.position()) + np.array([dx, dy, 0])), 0, dura)
+		else:
+			targetCF.goTo((np.array(targetCF.position()) + np.array([-dx, dy, 0])), 0, dura)
+		timeHelper.sleep(dura)
+		if dist == 'land':
+			targetCF.land(targetHeight=0.003, duration=4.0)
+			timeHelper.sleep(4.0)
+			break
+			
+	###THIS doesnt work cuz even if yaw changes, there is not "forward" for the cf
+	## it will always go to the specified location 
+
 def distanceCheck():
 	
 	#make an array/matrix with all the current positions
 	#go through each value (by x, y, z) 
 	#make sure nothing is within a 0.3 range ?
+	
+	#first checks loop compares all cfs to target cf 
+	
+	for cf in cfs:
+		othercf = cf.id 
+		if othercf != targetCFid:
+			dist = distance.euclidean(np.array(targetCF.position()), np.array(allcfs.crazyfliesById[othercf].position()))
+			if dist <= 0.3:
+				##sameTODO
+				print 'CF',othercf,"is too close to target", dist
+				cfpos = np.array(cf.position())
+				tarpos = np.array(targetCF.position())
+				diffx = 0.3 - (tarpos[0] - cfpos[0])
+				diffy = 0.3 - (tarpos[1] - cfpos[1])
+				diffz = (tarpos[2] - cfpos[2])
+				allcfs.crazyfliesById[othercf].goTo((np.array(cf.position()) - np.array([diffx, diffy, diffz])), 0, spd)
+		else:
+			continue
+	
+	#second checks loop compares all cfs to all cfs (not including target assuming it should already be out of the way) 
 		
 	for cf in cfs: #baseCF row i
 		basecf = cf.id
 		for cf in cfs: #comparedCF row j
 			currentcf = cf.id
-			if currentcf == basecf: #skips itself
-				continue
-			else:
+			if currentcf != basecf and currentcf != targetCFid: #skips itself and target
 				dist = distance.euclidean(np.array(allcfs.crazyfliesById[basecf].position()), np.array(allcfs.crazyfliesById[currentcf].position()))
 				if dist <= 0.3:
-					##TODO: if they're too close, adjust one to a certain distance away
-					##figure out how to come up with that?
-					print 'CF',basecf,"is too close to CF",cf.id, dist
-					allcfs.crazyfliesById[currentcf].goTo((np.array(cf.position()) + np.array([0, 0, -0.2])), 0, 1)
-					#cf is referring to both base and current?? 
-				else:
-					continue
-			print basecf, currentcf, dist
+					print 'CF', basecf, 'is too close to CF', currentcf
+					currpos = np.array(allcfs.crazyfliesById[currentcf].position())
+					basepos = np.array(allcfs.crazyfliesById[basecf].position())
+					difx = 0.3 - (basepos[0] - currpos[0])
+					dify = 0.3 - (basepos[1] - currpos[1])
+					difz = (basepos[2] - currpos[2])
+					allcfs.crazyfliesById[currentcf].goTo((np.array(cf.position()) - np.array([difx, dify, difz])), 0, spd)
+			else:
+				continue
 
-	##^^ interesting things are happening 
-	#something about the loops isn't happening in the right order 
-	#figure that out
-	#print each process and maybe slow things down??
-	
+
 def randHeights():
 	rand_heights = None
 
@@ -154,9 +197,9 @@ def randHeights():
 		
 	for cf in allcfs.crazyflies:
 		startHoverMatrix = np.array(cf.initialPosition) + np.array([0, 0, heights[cf]])
-		cf.goTo(startHoverMatrix, 0, 5.0)
+		cf.goTo(startHoverMatrix, 0, 2.0)
 
-	timeHelper.sleep(5.0) 
+	timeHelper.sleep(2.0) 
 
 def hoverCallback():	
 	allcfs.takeoff(targetHeight=1.0, duration=3.0)

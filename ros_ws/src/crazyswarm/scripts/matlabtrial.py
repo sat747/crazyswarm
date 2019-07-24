@@ -24,4 +24,4 @@ if __name__ == "__main__":
 	
 	eng.quit()
 
-#yay it works#
+#yay it works#but doesnt work with traj gen??

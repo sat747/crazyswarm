@@ -27,6 +27,8 @@ NOTES:
 ** each function/configuration (TODO) exists as an independent .py file
 	in the scripts folder for simpler executions and easier editing or debugging
 	
+** input stop to emergency stop the program
+	
 """
 
 #import different libraries

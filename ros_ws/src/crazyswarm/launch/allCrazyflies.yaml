@@ -6,59 +6,59 @@ crazyflies:
     channel: 80
     initialPosition: [0.8, 0.4, 0.0]
     type: default
-  - id: 10 #2
+  - id: 2
     channel: 80
     initialPosition: [0.8, 0.0, 0.0]
     type: default
-  - id: 7 #3
+  - id: 3
     channel: 80
     initialPosition: [0.8, -0.4, 0.0]
     type: default
-  - id: 19 #4
+  - id: 4
     channel: 80
     initialPosition: [0.4, 0.4, 0.0]
     type: default
-  - id: 22 #5
+  - id: 5
     channel: 80
     initialPosition: [0.4, 0.0, 0.0]
     type: default
-  - id: 8 #6
+  - id: 6
     channel: 90
     initialPosition: [0.4, -0.4, 0.0]
     type: default
-  - id: 11 #7
+  - id: 7
     channel: 90
     initialPosition: [0.0, 0.4, 0.0]
     type: default
-  - id: 14 #8
+  - id: 8
     channel: 90
     initialPosition: [0.0, 0.0, 0.0]
     type: default
-  - id: 17 #9
+  - id: 9
     channel: 90
     initialPosition: [0.0, -0.4, 0.0]
     type: default
-  - id: 20 #10
+  - id: 10
     channel: 90
     initialPosition: [-0.4, 0.4, 0.0]
     type: default
-  - id: 23 #11
+  - id: 11
     channel: 90
     initialPosition: [-0.4, 0.0, 0.0]
     type: default
-  - id: 06 #12
+  - id: 12
     channel: 100
     initialPosition: [-0.4, -0.4, 0.0]
     type: default
-  - id: 12 #13
+  - id: 13
     channel: 100
     initialPosition: [-0.8, 0.4, 0.0]
     type: default
-  - id: 15 #14
+  - id: 14
     channel: 100
     initialPosition: [-0.8, 0.0, 0.0]
     type: default
-  - id: 21 #15
+  - id: 15
     channel: 100
     initialPosition: [-0.8, -0.4, 0.0]
     type: default    

@@ -572,7 +572,7 @@ STEM Camp Demo? Monday? 8 or 15 both i guess lol 1PM
 ** Adjust static formations towards -x axis
 	** or just adjust the origin entirely (to avoid railing)
 	** maybe add some drones to the floor and remove the top-most row of CFs
-	
+##*** get this ready for ig takeover lol 
 	
 - Matlab trial code worked using simple functions 
   but complex traj gen fxn from matlab was sending errors about matlab.engine
@@ -585,4 +585,62 @@ STEM Camp Demo? Monday? 8 or 15 both i guess lol 1PM
   
 *- try to regularly update the git repo so we can look through the code outside of the lab
 
-||| July 21-25 |||
+||| July 22-25 |||
+
+>- figuring out matlab-python code (or matlab to ros???) 
+^^ yay this workeeeddd
+ *** but now try to skip the csv file generation step
+	- also so it doesn't have to make a brand new file per cf that needs a trajectory
+	*- isolate the data types for trajectory poly pieces 
+	 - allow matlab result to generate directly to uploadtrajectory 
+
+ *** or csv format of data can be created to uploadtrajectory from 
+	but without creating a new file 
+	
+	* or only update one file as each new trajectory is generated
+	but it has to be used and followed by the assigned cf before being overwritten
+	
+	
+>- figure out the loops to check distances and stuff :<< 
+
+>- plan out thursday takeover lol
+
+**update initialPositions to adjust for treadmill
+	* remember to account for -z heights below treadmill 
+**adjust static formations in -x axis 
+## recalibrate system to essentially have everything in the -x region 
+
+TODO: AvoidTarget
+1. Fix moving and checking loops for avoid 
+2. Do trajectory gen without needing to create new csv files 
+   (one time use data that gets uploaded and executed for cf immediately)
+3. Combine traj gen to obstacle avoidance 
+4. Find way to take angle between target and other cfs for avoidance
+l. Smoothen teleop controls by incorporating trajgen and angles
+
+- cf_teleop can take input in distance and angular direction to move cf
+** cfs can't just move in the 'negative' of the distance because the smaller the distance, the less it will adjust
+   need to maintain a certain distance (direct not components) 
+   *how to determine the appropriate adjustments in the x and y to maintain?
+
+TODO: Testing set up prep 
+//1. Plot out new initialPositions for CFs 
+//2. Edit static and waypoint files to adjust for -x axis adjustment
+3. Make sure all CFs are charged and re-test drones to categorize performance
+4. Add new tape markers inside mocap space for drones 
+
+TODO: FollowTarget (if avoidtarget issues are resolved this would be easier) 
+		(but can be done first because the loops aren't as much of an issue)
+1. similar to avoidtarget stuff in terms of traj gen 
+2. just plan this out
+
+TODO: Waypoints
+1. use active CFs instead of having to hardcode in csv file
+2. make other fun shapes with waypoints
+
+
+****i know everything is in python rn but if someone in the future is better versed in ROS they can just take the logic and change the syntax****
+~~~~ just a thought :)))) ~~~~
+
+
+
