@@ -616,12 +616,17 @@ TODO: AvoidTarget
    (one time use data that gets uploaded and executed for cf immediately)
 3. Combine traj gen to obstacle avoidance 
 4. Find way to take angle between target and other cfs for avoidance
-l. Smoothen teleop controls by incorporating trajgen and angles
+5. Smoothen teleop controls by incorporating trajgen and angles
+6. RESEARCH swarm behavior modeling? biomimicry, robotic systems, mathematical equations 
 
 - cf_teleop can take input in distance and angular direction to move cf
 ** cfs can't just move in the 'negative' of the distance because the smaller the distance, the less it will adjust
    need to maintain a certain distance (direct not components) 
    *how to determine the appropriate adjustments in the x and y to maintain?
+--basing it off of the original crazyswarm avoidtarget set up (using vectors) 
+and incorporating trajectories
+** rewrite new version 
+
 
 TODO: Testing set up prep 
 //1. Plot out new initialPositions for CFs 
@@ -642,5 +647,22 @@ TODO: Waypoints
 ****i know everything is in python rn but if someone in the future is better versed in ROS they can just take the logic and change the syntax****
 ~~~~ just a thought :)))) ~~~~
 
+||| July 29 - Aug 1 |||
+
+-> continue checking off TODOs from last week 
+* adding on more TODOs for the rest of summer
+
+TODO: Troubleshooting
+1. Retest bad drones
+2. Record the performance and monitor all variables
+3. Submit issue on crazyswarm git to fix those bad drones
+4. Maybe ask Dr. Dames or someone else for help with regards to fixing the boards of the physically broken ones (24, 9)
+
+TODO: Reconfirm demo flight quality
+1. Reserve testing space (after issues have been resolved)
+2. Test all drones individually and as a swarm
 
 
+***avoid target algorithm/swarm behaviors might be a bit more advanced and will take some more studying
+^^ something to work on throughout the year 
+>> Let's prioritize making sure all the demo things work smoothly before finishing up the avoid target things

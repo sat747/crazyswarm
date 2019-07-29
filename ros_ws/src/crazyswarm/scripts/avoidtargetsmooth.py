@@ -1,14 +1,7 @@
 #!/usr/bin/env python
 '''
-avoid target script
-- identifies target cf
-- sends other cfs to random heights or to static formation
-- loads path for targetCF (trajectory or teleop) 
-- loops to check current position of targetCF relative to other present CFs
-- adjusts accordingly to avoid collisions 
-
-#movements are controlled by cf_teleop.py imported from scripts folder
-# using input in distance and direction
+same as avoid target script
+incorporates matlab trajectory generation 
 '''
 
 

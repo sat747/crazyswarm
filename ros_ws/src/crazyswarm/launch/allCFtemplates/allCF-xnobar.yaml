@@ -1,0 +1,75 @@
+crazyflies:
+  - id: 10
+    channel: 80
+    initialPosition: [0.0, 0.4, 0.0]
+    type: default
+  - id: 11
+    channel: 90
+    initialPosition: [0.0, 0.0, 0.0]
+    type: default
+  - id: 12
+    channel: 100
+    initialPosition: [0.0, -0.4, 0.0]
+    type: default
+  - id: 1
+    channel: 80
+    initialPosition: [-0.5, 0.4, 0.0]
+    type: default
+  - id: 2
+    channel: 90
+    initialPosition: [-0.5, 0.0, 0.0]
+    type: default
+  - id: 3
+    channel: 100
+    initialPosition: [-0.5, -0.4, 0.0]
+    type: default
+  - id: 4
+    channel: 80
+    initialPosition: [-1.0, 0.4, 0.0]
+    type: default
+  - id: 5
+    channel: 90
+    initialPosition: [-1.0, 0.0, 0.0]
+    type: default
+  - id: 6
+    channel: 100
+    initialPosition: [-1.0, -0.4, 0.0]
+    type: default
+  - id: 7
+    channel: 80
+    initialPosition: [-1.5, 0.4, 0.0]
+    type: default
+  - id: 8
+    channel: 90
+    initialPosition: [-1.5, 0.0, 0.0]
+    type: default
+  - id: 9
+    channel: 100
+    initialPosition: [-1.5, -0.4, 0.0]
+    type: default
+  - id: 13
+    channel: 80
+    initialPosition: [-2.5, 0.4, -0.4]
+    type: default
+  - id: 14
+    channel: 90
+    initialPosition: [-2.5, 0.0, -0.4]
+    type: default
+  - id: 15
+    channel: 100
+    initialPosition: [-2.5, -0.4, -0.4]
+    type: default
+  - id: 16
+    channel: 80
+    initialPosition: [-3.0, 0.0, -0.4]
+
+
+#	   0.4   0  -0.4
+#	    1    2    3  	  0.0
+#	    4    5 	  6  	  -0.5
+#	    7    8    9  	  -1.0
+#      10   11   12       -1.5 (moved to top)
+# 0.8  				 -0.8		z = -0.4
+#      ##   ##   ##       -2.0
+#      13   14   15       -2.5
+#      ##   16   ##       -3.0

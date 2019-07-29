@@ -27,7 +27,7 @@ NOTES:
 ** each function/configuration (TODO) exists as an independent .py file
 	in the scripts folder for simpler executions and easier editing or debugging
 	
-** input stop to emergency stop the program
+** input 'stop' to emergency stop the program
 	
 """
 
@@ -65,7 +65,7 @@ def main():
 		
 	while True:
 		print("What do you want to do?")
-		print("Choose: takeoff, land, hover, static, dynamic, waypoints, goto, //follow, or avoid")
+		print("Choose: takeoff, land, hover, static, dynamic, waypoints, goto, (follow, or avoid)")
 		task = raw_input()
 		
 		if task == 'takeoff':
@@ -111,10 +111,6 @@ def takeoffCallback():
 	
 def landCallback():	
 	startHoverMatrix = []		
-	
-	#for cf in allcfs.crazyflies:
-	#	startHoverMatrix = np.array(cf.initialPosition) + np.array([0, 0, 0.5])
-	#	cf.goTo(startHoverMatrix, 0, 7.0)
 	
 	for cf in allcfs.crazyflies:
 		startHoverMatrix.append(cf.initialPosition + np.array([0, 0, 0.5]))
@@ -173,9 +169,6 @@ def hoverCallback():
 	cftoGoals(initpos)
 
 def static():
-	#find different way to get coordinates from yaml file
-	#wihtout using launch code 
-	#if rospy.has_param('~Square.yaml/Drone_Coordinates'):
 	folder = 'coordfiles'
 	
 	print "Input .yaml filename for Drone_Coordinates"
@@ -216,9 +209,6 @@ def static():
 	timeHelper.sleep(2.0)
 	
 	cftoGoals(goalPositionMatrix)
-	
-	#else:
-	#	print "Could not find coordinates"
 
 def dynamic():
 	folder = 'trajfiles'	
@@ -271,6 +261,7 @@ def waypoints():
 	for row in data:
 		if lastAgent is None or lastAgent != row[0]:
 			lastTime = 0.0
+			
 		waypoints.append(Waypoint(
 			int(row[0]),
 			row[1],
@@ -285,17 +276,26 @@ def waypoints():
 	
 	print(waypoints)
 	
-	#execute waypoints	
 	'''
-	origIds = []
-	for cf in allcfs.crazyflies:
-		origIds.append(cf.id)
-	print(origIds)
-	'''	
-	startPos = []
+	TODO: make the agent input variable so waypoint csv file doesn't need to changed every run
+	EITHER takes agents from active cfs or user input for active agents 
+	 op1: have to find a way to assign them appropriately in terms of starting positions
+		because goTos don't consider paths and collisions 
+		maybe find a way to use CFtoGoals script that assigns to nearest starting pos
+		- this assumes all CFs start at the same time and are executing in sync
+		- it's as if doing a static formation to start then beginning waypoints 
+		
+	op2: take in user input to replace the agents from csv file
+		loops are getting weird lol 
+		making sure the appropriate active cfs are replacing in the same slots 
+		
+	for now just change csv file I guess :<<<
+		
+	'''
+	
+	#execute waypoints	
 	
 	lastTime = 0.0
-	
 	for waypoint in waypoints:
 		if waypoint.arrival == 1:
 			pos = [waypoint.x, waypoint.y, waypoint.z]
@@ -318,14 +318,31 @@ def follow():
 	targetCFid = int(raw_input())
 	targetCF = allcfs.crazyfliesById[targetCFid]
 	
-	##might want to use waypoints for this?? then similar to 4spin 
-	#each cf takes on the pos of the one before it	
-	#follow fxn
-	#plot trajectory or path for one CF
-	# and send CF to that 
+	"""
+	TODO: Follow demo
+	will follow target
+	target => waypoints path, trajectory path, or teleop 
+	cfs => follow linear or swarm
+	linear: cfs will follow the target one at a time in a beeline manner
+		(first cf follows each previous location point of the target
+		and is followed by the next cfs) 
+	swarm: modeled similarly to avoid target by using a maintained distance
+		the swarm will crowd the target as closely as possible 
+		while maintaining their safe flight distance
+		and the whole swarm reacts to the movements of the target
+	"""
 
 ##MAKE in a separate file
 def avoid():
+	'''
+	TODO: avoid target
+	*avoidtarget.py file has better progress
+	target => fly by trajectory path or teleop 
+	cfs => will adjust smoothly when they are too near the target or each other
+		movement of cfs ideally have them fly far enough away to a safe distance
+		but once the target is far enough away and it's safe to return to the
+		original positions they should go back so that the whole swarm bounces back after interference
+	'''
 	cfs = allcfs.crazyflies
 	
 	#target Input
@@ -393,30 +410,6 @@ def avoid():
 	
 	targetCF.startTrajectory(0, timescale=1.0)
 	timeHelper.sleep(trajectory.duration)
-	##how can we make this happen during the trajectory?
-	##or should we not use the preset functions in order to be able to go through each thing
-	##in this case: do it in a different file pls  
-	#for cf in allcfs.crazyflies:
-		#if cf.id == targetCF:
-			#continue
-		#else:
-			#print np.array(cf.position())
-			#targetcf = np.array(targetCF.position())
-			#currentcf = np.array(cf.position())
-			##determine if it's too close or not
-			##find nicer way to do this
-			#if (targetcf[0] - currentcf[0]) <= 0.5:
-				#print targetcf[0] - currentcf[0]
-				#cf.goTo(np.array(cf.position()) - np.array([0.2, 0, 0]), 0, 1.0)
-			#elif (targetcf[1] - currentcf[1]) <= 0.5:
-				#print targetcf[1] - currentcf[1]
-				#cf.goTo(np.array(cf.position()) - np.array([0.0, 0.2, 0]), 0, 1.0)
-	##loop that checks where the target Cf is relative to each CF 
-	##currently only compares the initial pos of the target? 
-	#timeHelper.sleep(10.0)	
-	
-	#is there a way to teleop crazyflies instead of sending to positions 
-	#move towards one axis by a given value instead of having to goTo
 
 
 if __name__ == "__main__":
