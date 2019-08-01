@@ -1,4 +1,5 @@
 function pp2csv(pp, filename)
+    %extract duration, x, y, z, yaw from here?? 
 	[breaks, coefs, npieces, order, dim] = unmkpp(pp);
 	assert(dim == 4);
 	coefs = reshape(coefs, 4, npieces, order);
@@ -15,7 +16,7 @@ function pp2csv(pp, filename)
 		end
 	end
 	fprintf(fid, '\n');
-	for piece=1:npieces
+    for piece=1:npieces
 		duration = breaks(piece+1) - breaks(piece);
 		fprintf(fid, '%f,', duration);
 		for d=1:4

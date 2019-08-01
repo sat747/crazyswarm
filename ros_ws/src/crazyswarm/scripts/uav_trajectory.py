@@ -95,7 +95,12 @@ class Trajectory:
   def loadcsv(self, filename):
     data = np.loadtxt(filename, delimiter=",", skiprows=1, usecols=range(33))
     self.polynomials = [Polynomial4D(row[0], row[1:9], row[9:17], row[17:25], row[25:33]) for row in data]
+    print self.polynomials
     self.duration = np.sum(data[:,0])
+    
+  def loadpoly(self, duration, ppx, ppy, ppz, ppyaw):
+	self.polynomials = [Polynomial4D(duration, ppx, ppy, ppz, ppyaw)]
+	self.duration = np.sum(duration)
 
   def eval(self, t):
     assert t >= 0

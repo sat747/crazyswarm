@@ -1,7 +1,16 @@
 #!/usr/bin/env python
 '''
-same as avoid target script
-incorporates matlab trajectory generation 
+avoid target script
+- identifies target cf
+- sends other cfs to random heights or to static formation
+- loads path for targetCF (trajectory or teleop) 
+- loops to check current position of targetCF relative to other present CFs
+- adjusts accordingly to avoid collisions 
+
+#movements are controlled by cf_teleop.py imported from scripts folder
+# using input in distance and direction
+
+Takes goal positions and generates trajectories for each individual CF???
 '''
 
 
@@ -79,6 +88,8 @@ def manualTeleop():
 	#Try using turtle teleop_twist? (figure out how to incorporate while still maintaining the loop)
 	while True:
 		distanceCheck()
+
+		timeHelper.sleep(0.5)
 		flyDir = raw_input("Flight direction:")		
 		if flyDir == 'w':
 			targetCF.goTo((np.array(targetCF.position()) + np.array([step, 0, 0])), 0, spd)
@@ -98,7 +109,6 @@ def manualTeleop():
 		else:
 			continue		
 
-		timeHelper.sleep(0.5)
 		
 def inputTeleop():	
 	while True:
@@ -131,28 +141,25 @@ def distanceCheck():
 	#make sure nothing is within a 0.3 range ?
 	
 	#first checks loop compares all cfs to target cf 
-	maxdisp = 0.3 
+	maxdisp = 0.1
 	
 	for cf in cfs:
 		othercf = cf.id 
 		if othercf != targetCFid:
 			dist = distance.euclidean(np.array(targetCF.position()), np.array(allcfs.crazyfliesById[othercf].position()))
-			if dist <= 0.3:
-				print 'CF',othercf,"is too close to target", dist
+			if dist <= 0.5 and dist > 0.0:
+				#print 'CF',othercf,"is too close to target", dist
 				cfpos = np.array(cf.position())
 				tarpos = np.array(targetCF.position())
 				delta = cfpos - tarpos
-				delta_unit = delta * (1.0 / dist)
+				delta_unit = delta / (dist)
 				desired_disp = 1.5 / (dist + m.pow(dist, 2))
 				disp = np.min([desired_disp, maxdisp])
+				print othercf, disp
 				allcfs.crazyfliesById[othercf].goTo(np.array(cf.position()) + np.array(disp * delta_unit), 0, spd)
-			else:
-				continue		
-		else:
-			continue
 	
 	#second checks loop compares all cfs to all cfs (not including target assuming it should already be out of the way) 
-		
+	### two for loops one after another isn't checking both one after the other for some reason?
 	for cf in cfs: #baseCF row i
 		basecf = cf.id
 		for cf in cfs: #comparedCF row j
@@ -160,16 +167,17 @@ def distanceCheck():
 			if currentcf != basecf and currentcf != targetCFid: #skips itself and target
 				dist = distance.euclidean(np.array(allcfs.crazyfliesById[basecf].position()), np.array(allcfs.crazyfliesById[currentcf].position()))
 				if dist <= 0.3:
-					print 'CF', basecf, 'is too close to CF', currentcf
+					#print 'CF', basecf, 'is too close to CF', currentcf
 					currpos = np.array(allcfs.crazyfliesById[currentcf].position())
 					basepos = np.array(allcfs.crazyfliesById[basecf].position())
 					delta = currpos - basepos
-					delta_unit = delta * (1.0 / dist)
+					delta_unit = delta / dist
+					print delta_unit
 					desired_disp = 1.5 / (dist + m.pow(dist, 2))
 					disp = np.min([desired_disp, maxdisp])
+					print desired_disp
+					print currentcf, disp
 					allcfs.crazyfliesById[currentcf].goTo(np.array(cf.position()) + np.array(disp * delta_unit), 0, spd)
-			else:
-				continue
 
 
 def randHeights():

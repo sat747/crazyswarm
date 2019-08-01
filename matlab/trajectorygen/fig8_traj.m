@@ -46,7 +46,7 @@ function [pp, knot, soln, free] = fig8_traj(helipad, radius)
 	x(:,1,:) = 0;
 	x(:,npts,:) = 0;
 	for i=2:(npts-1)
-		x(1,i,:) = [xpos(i) ypos(i) 0 0];
+		x(1,i,:) = [xpos(i) ypos(i) 0 0]
 		%x(2,i,:) = [xvel(i) yvel(i) 0 0];
 	end
 

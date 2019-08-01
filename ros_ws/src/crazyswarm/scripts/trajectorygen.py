@@ -42,8 +42,8 @@ def main():
 	eng.addpath(matlabfilepath)
 
 	
-	print "Input .csv filename to be generated:"
-	csvname = raw_input()
+	#print "Input .csv filename to be generated:"
+	#csvname = raw_input()
 	
 	npts = int(raw_input('Number of points:'))
 	
@@ -51,7 +51,7 @@ def main():
 	py = []
 	pz = []
 	
-	for i in range(npts):
+	for i in range(npts-1):
 		xval = float(input("x val:"))
 		px.append(xval)
 		yval = float(input("y val:"))
@@ -61,13 +61,11 @@ def main():
 		
 	print 'x', px, 'y', py, 'z', pz
 	
-	fname = eng.pathgen(csvname, npts, px, py, pz)
-	
-	print fname
+	duration, ppx, ppy, ppz, ppyaw = eng.pathgen(npts, px, py, pz, nargout=5)
 	
 	takeoffCallback()
 	
-	cfFly(csvname)
+	cfFly(duration, ppx, ppy, ppz, ppyaw)
 	
 	print "Press button to land"
 	swarm.input.waitUntilButtonPressed()
@@ -82,10 +80,12 @@ def takeoffCallback():
 	allcfs.takeoff(targetHeight=tarHeight, duration=3.0)
 	timeHelper.sleep(2.0)
 
-def cfFly(csvname):
-	folder = 'trajfiles'	
+def cfFly(duration, ppx, ppy, ppz, ppyaw):
+	#folder = 'trajfiles'	
 	
-	trajectory.loadcsv(("{0}/{1}.csv").format(folder, csvname))
+	#trajectory.loadcsv(("{0}/{1}.csv").format(folder, csvname))
+	
+	trajectory.loadpoly(duration, ppx, ppy, ppz, ppyaw)
 	
 	timeScale = 1.0
 	

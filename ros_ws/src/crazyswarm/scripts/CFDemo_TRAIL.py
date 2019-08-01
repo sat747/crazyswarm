@@ -285,7 +285,7 @@ def waypoints():
 		- this assumes all CFs start at the same time and are executing in sync
 		- it's as if doing a static formation to start then beginning waypoints 
 		
-	op2: take in user input to replace the agents from csv file
+	 op2: take in user input to replace the agents from csv file
 		loops are getting weird lol 
 		making sure the appropriate active cfs are replacing in the same slots 
 		

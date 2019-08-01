@@ -32,4 +32,15 @@ Matlab (Trajectory Generation) files: //crazyswarm/matlab/trajectorygen
 - circlegen.m
 - fig8gen.m
 - fourcorners.m
+- pathgen.m -> matlab function used by trajectorygen.py to make trajectory paths based on user input coordinates
+
+Other (created) python files:
+- avoidtarget.py -> selects targetCF to control by teleop and be avoided by other cfs
+- avoid_trajgen.py -> similar to avoidtarget but generates trajectory paths when avoiding target for smoother flight
+- cf_teleop.py/c -> script defining teleop class to control CFs in avoidtarget
+- downwashtest.py -> simple script that sends two CFs to fly directly above each other with a given height difference
+- matlabtrial.py -> just used to practice using matlab.engine to run matlab fxns in python
+- modwaypoints.py -> modified waypoints script that ideally takes the active cfs as agents instead of pre-determined
+- testGroupEd.py -> just edited version of testGroup to see if groupmasks actually work
+- trajectorygen.py -> takes user input and generates trajectory flight path for cfs to follow
 

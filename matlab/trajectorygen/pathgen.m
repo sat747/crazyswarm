@@ -1,6 +1,6 @@
-function filename = pathgen(name, npts, px, py, pz)
+function [duration, fx, fy, fz, fyaw] = pathgen(npts, px, py, pz)
     %general path trajectory generation
-    
+        
     if iscell(px) && iscell(py) && iscell(pz)
         X = cellfun(@double, px);
         Y = cellfun(@double, py);
@@ -22,7 +22,7 @@ function filename = pathgen(name, npts, px, py, pz)
     dim = 4;
 
     % mission with only position constraints
-    x = nan(3, npts, 4);
+    x = nan(3, npts, 4); 
 
     % start on ground with 0 vel, 0 acc at theta=0
     x(:,1,:) = 0;         % initial zeros in everything up to acceleration
@@ -47,7 +47,36 @@ function filename = pathgen(name, npts, px, py, pz)
     fprintf('%d free dimensions\n', size(free, 2));
 
     pp = polyvec2pp(knot, dim, soln);
-    pp2csv(pp, strcat(name,".csv"));
+    %pp2csv(pp, strcat(name,".csv"));
+ 
+    %return: (duration, x, y, z, yaw)
+    [breaks, coefs, npieces, order, dim] = unmkpp(pp);
+	assert(dim == 4);
+	coefs = reshape(coefs, 4, npieces, order);
+    duration = nan(npieces, 1);
+    dx = nan(npieces,degree+1);
+    dy = nan(npieces,degree+1);    
+    dz = nan(npieces,degree+1);    
+    dyaw = nan(npieces,degree+1);
+
+    for piece=1:npieces
+		duration(piece,:)= breaks(piece+1) - breaks(piece);
+			%add x, y, z, yaw to respective variables
+        dx(piece,:) = flipud(squeeze(coefs(1,piece,:)));
+        dy(piece,:) = flipud(squeeze(coefs(2,piece,:)));
+        dz(piece,:) = flipud(squeeze(coefs(3,piece,:)));
+        dyaw(piece,:) = flipud(squeeze(coefs(4,piece,:)));
+    end
     
-    filename = name;
+    tx = transpose(dx);
+    ty = transpose(dy);
+    tz = transpose(dz);
+    tyaw = transpose(dyaw);
+    
+    fx = (tx(:));
+    fy = (ty(:));
+    fz = (tz(:));
+    fyaw = (tyaw(:));
+    duration = (duration);
+    
 end

@@ -666,3 +666,31 @@ TODO: Reconfirm demo flight quality
 ***avoid target algorithm/swarm behaviors might be a bit more advanced and will take some more studying
 ^^ something to work on throughout the year 
 >> Let's prioritize making sure all the demo things work smoothly before finishing up the avoid target things
+
+TODO: Documentation
+1. Clean up documentation 
+2. Finalize instructional document for demos and flying the CFs 
+3. Upload all final documentation files on shared lab drive folder and github fork
+
+TODO: Trajectory generation
+1. Find out what data type uploadTrajectory uses
+2. Figure out if matlab generates the same thing 
+3. Edit trajgen code to skip creating a new csv file and directly upload trajectory coordinates
+	so it can be used for interactive demos
+
+*- turn this into class so code doesn't need to be reinstated for each different use
+- Trajectory (class from uav_trajectory) can take input of duration, x, y, z, yaw using Polynomial4D
+*- Find this info within matlab functions? getting the values that are put into the csv file 
+- pp2csv file uses some matlab fxns when putting data in **it's weeeird
+- find a way to just generate the same matrix style values just without the csv file 
+
+
+
+	
+Cont: Avoid Target
+- equation from crazyswarm firmware was a bit weird? kind of works when scaled down?
+- not entirely sure how to works cuz everything moves even if they're far enough away and not appropriately 
+- unless maxdisp is very slow (around step size)  
+- checking loops aren't optimal -- better to run them simultaneously 
+- might need to learn ros to make this work better with different nodes running different things 
+- goals is to get the set of goal points generated and feed into trajectory generator
