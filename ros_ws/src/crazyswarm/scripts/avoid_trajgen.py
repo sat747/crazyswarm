@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 '''
-avoid target script
+copy of avoid target script
 - identifies target cf
 - sends other cfs to random heights or to static formation
 - loads path for targetCF (trajectory or teleop) 

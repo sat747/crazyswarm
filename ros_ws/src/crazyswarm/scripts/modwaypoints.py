@@ -1,7 +1,11 @@
 #!/usr/bin/env python
 
 """
-waypoints
+modified waypoints
+file used to try and do TODOs for waypoints
+
+- be able to reassign the agents following the waypoints based on active crazyflies
+- or create a csv waypoint file based on user given inputs (not very useful, same amount of work as direct inputs in excel)
 	
 """
 
@@ -66,6 +70,7 @@ def landCallback():
 	timeHelper.sleep(3.0)
 
 def cftoGoals(goalPositionMatrix):
+	#used to send the cfs to their first waypoint being the most convenient for them
 	robotPositionMatrix = []
 	
 	for cf in allcfs.crazyflies:
@@ -112,6 +117,7 @@ def cftoGoals(goalPositionMatrix):
 		if abs(currpos[0] - initpos[0]) <= 0.005 and abs(currpos[1] - initpos[1]) <= 0.005:
 			cf.land(targetHeight=0.001, duration=3.0)
 			
+	timeHelper.sleep(3.0)
 
 def hoverCallback():
 	initpos = []		
@@ -196,7 +202,7 @@ def waypoints():
 			activecfs.append(cf.id)
 			
 	lastTime = 0.0
-	for i in range(activecfs):
+	for i in activecfs:
 		##### doesn't assign to specifically labeled cf/waypoint
 		for waypoint in waypoints:
 			if waypoint.arrival > 0:

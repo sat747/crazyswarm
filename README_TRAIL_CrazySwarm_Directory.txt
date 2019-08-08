@@ -1,3 +1,12 @@
+::Shortcuts::
+	[Ctrl] + [Alt] + C  =  opens crazyswarm folder
+	cfscripts  =  cd crazyswarm/ros_ws/src/crazyswarm/scripts
+	flash51 = flashes nrf51 firmware
+	flash32 = flashes stm32 firmware
+	hoverswarm = roslaunch crazyswarm hover_swarm.launch
+	mocaphelper = roslaunch crazyswarm mocap_helper.launch
+
+
 - CFDemo_TRAIL.py //crazyswarm/ros_ws/src/crazyswarm/scripts
  ~ main python demo file that executes all swarm configurations
  
@@ -6,14 +15,14 @@
    trajfiles - .csv trajectories, matlab generated csv trajectory files for dynamic flight
    wayfiles - .csv waypoints, hardcoded coordinates assigned to specific cfs for waypoint flight
 
-Talkers (Data.py files): //crazyswarm/ros_ws/src/crazyswarm/scripts
-- TRAILGoalData.py //original talker with edits
-- TRAILDemoTalker.py //calls coordinates from Demo.yaml
+Talkers: //crazyswarm/ros_ws/src/crazyswarm/scripts
+- TRAIL_talker.py //original talker with edits
+- TRAIL_multitalker.py //calls coordinates from Demo.yaml
 - PolyData.py //calls coordinates from Polygons.yaml 
 
-Listeners (Assign.py files): //crazyswarm/ros_ws/src/crazyswarm/scripts
-- TRAILGoalAssign.py //original listener with edits
-- TRAILDemoListener.py //todo: include dynamic flight patterns; swarm moves together retaining formation from coordinate assignments
+Listeners: //crazyswarm/ros_ws/src/crazyswarm/scripts
+- TRAIL_listener.py //original listener with edits
+- TRAIL_multilistener.py //todo: include dynamic flight patterns; swarm moves together retaining formation from coordinate assignments
 
 Launch files: //crazyswarm/ros_ws/src/crazyswarm/launch
 - TRAIL_test.launch //original GoalData + GoalAssign

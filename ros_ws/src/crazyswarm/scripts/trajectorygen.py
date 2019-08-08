@@ -2,10 +2,11 @@
 '''
 
 Generates smooth trajectory paths from live input of points
-Uses defined functions in matlab to generate a .csv file
+Uses defined functions in matlab to generate polynomial points
 That is read by uav_trajectory.py and uploads to CFs
 
 **trajectory points are relative to CF's starting points**
+***it worksssss***
 
 '''
 
@@ -32,9 +33,7 @@ filepath = '/home/trailCrazyswarm/crazyswarm/ros_ws/src/crazyswarm/scripts'
 	#npts: number of waypoints to be included in trajectory
 	#px: array (1d matrix?) of x values (same number as npts) 
 	#"" py, pz
-'''
-##TODO: Skip the csv part and go straight from matlab to python 
-'''
+
 def main():
 	#ask for inputs: name, npts, x, y, z
 	# for avoid target: generate x,y,z's in arrays 
@@ -61,8 +60,11 @@ def main():
 		
 	print 'x', px, 'y', py, 'z', pz
 	
+	#sends inputs through pathgen.m fxn to generate poly points for trajectory 
 	duration, ppx, ppy, ppz, ppyaw = eng.pathgen(npts, px, py, pz, nargout=5)
 	
+	#print duration, ppx, ppy, ppz, ppyaw
+
 	takeoffCallback()
 	
 	cfFly(duration, ppx, ppy, ppz, ppyaw)
@@ -85,9 +87,10 @@ def cfFly(duration, ppx, ppy, ppz, ppyaw):
 	
 	#trajectory.loadcsv(("{0}/{1}.csv").format(folder, csvname))
 	
+	#sends poly points output from matlab to loadpoly function in uav_trajectory, class Trajectory	
 	trajectory.loadpoly(duration, ppx, ppy, ppz, ppyaw)
 	
-	timeScale = 1.0
+	timeScale = 2.0
 	
 	for cf in allcfs.crazyflies:
 		cf.uploadTrajectory(0, 0, trajectory)

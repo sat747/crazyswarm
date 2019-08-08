@@ -10,7 +10,7 @@ controls cf flight given input of distance, direction and duration
 Only works on x-y plane cuz angular direction
 
 distance: float in meters
-direction: radians relative to +x axis?
+direction: input [-pi/2,pi/2] (for angles in -x, make distance negative)
 duration: seconds
 
 **yaw method of teleop will only work for target cf 

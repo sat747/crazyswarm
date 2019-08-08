@@ -10,9 +10,11 @@ Configurations:
  - Dynamic trajectories (swarm moves together following a trajectory pattern)
 	- input: csv trajectory file (generated thru matlab)
  - Waypoints (each cf is assigned multiple points to fly to) 
-	- input: csv waypoint file (generated thru matlab??)
- - Interactive: Follow (swarm will fly towards a certain target, maintaining a safe flight distance)
- - Interactive: Avoid (swarm will adjust and avoid as a target moves within range)
+	- input: csv waypoint file (TODO: generated thru matlab?? make waypoint file from user input entirely)
+ - *Interactive: Follow (swarm will fly towards a certain target, maintaining a safe flight distance)
+ - *Interactive: Avoid (swarm will adjust and avoid as a target moves within range)
+
+*doesn't work yet
 
 NOTES:
 ** make sure all files for execution (eg. yaml, csv) are within the appropriate folders
@@ -25,7 +27,12 @@ NOTES:
 	(or else program will crash and potentially shutdown cfs midflight)
 	
 ** each function/configuration (TODO) exists as an independent .py file
-	in the scripts folder for simpler executions and easier editing or debugging
+	in the scripts folder for simpler executions and easier editing, updating or debugging
+	- specific comments on individual parts and functions can be found in the separate files
+	- Static: TRAIL_listener,_talker,_multilistener,_multitalker.py
+	- Dynamic: figure8_csv.py (og crazyswarm), trajectorygen.py
+	- Waypoints: waypoints.py (og cs), modwaypoints.py 
+	- Avoid: avoidtarget.py, avoid_trajgen.py
 	
 ** input 'stop' to emergency stop the program
 	
@@ -380,7 +387,7 @@ def avoid():
 		for cf in allcfs.crazyflies:
 			startHoverMatrix = np.array(cf.initialPosition) + np.array([0, 0, heights[cf]])
 			cf.goTo(startHoverMatrix, 0, 5.0)
-	
+	                                                                                                                                                                                                                                                           
 		timeHelper.sleep(5.0) 
 	
 		

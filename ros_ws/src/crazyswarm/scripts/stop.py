@@ -1,4 +1,7 @@
 #!/usr/bin/env python
+'''
+Runs emergency stop function for crazyflies in case of programs crashing midflight
+'''
 
 from pycrazyswarm import *
 

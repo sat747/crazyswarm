@@ -8,7 +8,7 @@
 
 - Edited Crazyswarm code by Ben&Sammy 
 	- fixed typos in comments
-	- renamed 'listener' and 'talker' nodes to 'TRAILGoalData' and 'TRAILGoalAssign' 
+	- renamed 'listener' and 'talker' nodes to 'TRAIL_listener' and 'TRAIL_talker'
 	- Created a 'fliecount' variable that takes the number of active crazyflies to create the positionMatrix size to avoid editing the node with each use
 	- Corrected use of duration matrix used in Hungarian Algorithm 
 		- the shortest duration used to determine the goals for the crazyflies should be a diagonal across the matrix ('duration[c][c]') rather than down one column
@@ -18,7 +18,7 @@
 
 - Added new .yaml files for different formations 
 
-- Created copy crazyswarm nodes for multi-formational demos (TRAILDemoTalker & TRAILDemoListener)
+- Created copy crazyswarm nodes for multi-formational demos (TRAIL_multitalker & TRAIL_multilistener)
  - ~Data node edits
 	- Demo.yaml file includes multiple formation coordinates that each are ended with a unique final character label	
 	- Created array that includes single character extensions of labeled coordinates in .yaml file
@@ -694,3 +694,31 @@ Cont: Avoid Target
 - checking loops aren't optimal -- better to run them simultaneously 
 - might need to learn ros to make this work better with different nodes running different things 
 - goals is to get the set of goal points generated and feed into trajectory generator
+
+
+||| Aug 5 - 9 ||| ~~##Last Week##~~
+
+Continue the main goals to conclude summer stuff and plan out future plans for school year
+-> Troubleshooting bad drones (document and submit issues)
+-> Demo test (Check that everything is working and maybe get better footage)
+-> Documentation (Organize documentation and reference files for future use)
+	//more or less done just update with new things that get added
+-> Fix physical damages on drones (#9 and 24)
+
+-> Waypoints (Bypass manual entry of active cfs in csv file)
+	- still don't really know if this is even necessary
+-> Trajectory Generation (Bypass csv file creation when uploading trajectory)
+	//This works now!!! yay
+	-Fixed the weird data type errors and stuff
+-> Follow Target
+-> Avoid Target 
+
+//final day//
+*Final testing, go through all individual crazyflies and test and record performance and behavior
+*check through what other things need to be done -- make a to do document maybe? 
+
+- WELP a lot of them don't work as well anymore
+- find a way to echo and see what's happening in terms of information being sent to the crazyflies
+- debug and submit issues yay
+
+but for now we are done yay

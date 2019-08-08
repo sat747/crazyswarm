@@ -73,10 +73,10 @@ function [duration, fx, fy, fz, fyaw] = pathgen(npts, px, py, pz)
     tz = transpose(dz);
     tyaw = transpose(dyaw);
     
-    fx = (tx(:));
-    fy = (ty(:));
-    fz = (tz(:));
-    fyaw = (tyaw(:));
-    duration = (duration);
+    fx = num2cell(tx(:));
+    fy = num2cell(ty(:));
+    fz = num2cell(tz(:));
+    fyaw = num2cell(tyaw(:));
+    duration = num2cell(duration);
     
 end

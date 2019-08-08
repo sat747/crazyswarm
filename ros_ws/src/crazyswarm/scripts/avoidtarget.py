@@ -9,6 +9,18 @@ avoid target script
 
 #movements are controlled by cf_teleop.py imported from scripts folder
 # using input in distance and direction
+
+**reference for code is in avoidTarget-Crazyswarm folder/package
+	- ros_ws/src/crazyswarm/scripts/avoidtarget.py (really only used the fly to random heights part)
+	- crazyflie-firmware/src/modules/src/avoidtarget.c (has the logic/math of determining goal positions to adjust from near target)
+									(but computations are questionable and weird)
+
+TODO: Rewrite to work with ROS so that individual nodes can work the different parts of the code simultaneously
+- TargetCF tracking: to check distances between each cf and the target and determine when they're too close and adjust back
+- AllCF tracking: to check distances between all of the cfs and make sure they don't get too close to each other either
+- Movement and path generation: uses matlab trajectory generation codes to make smooth movements for each cf as it 
+  receives new goal positions (to make avoiding look more organic)
+
 '''
 
 
@@ -26,13 +38,13 @@ import uav_trajectory #trajectory classes
 from waypoints import Waypoint #waypoint class
 import cf_teleop
 
-#for formation coordinates
-from geometry_msgs.msg import Pose
-from geometry_msgs.msg import PoseArray
-import yaml
-import os
+##for formation coordinates
+#from geometry_msgs.msg import Pose
+#from geometry_msgs.msg import PoseArray
+#import yaml
+#import os
 
-#for hungarian algorithm
+#for euclidean distance
 from scipy.spatial import distance
 
 swarm = Crazyswarm()
@@ -69,8 +81,6 @@ def main():
 		randHeights()
 	elif toRand == 'h':
 		hoverCallback()
-	
-	timeHelper.sleep(5.0)
 	
 	targetflight = raw_input("Generate trajectory or control manually? (keys/info)")	
 	
@@ -133,52 +143,80 @@ def distanceCheck():
 	
 	#make an array/matrix with all the current positions
 	#go through each value (by x, y, z) 
-	#make sure nothing is within a 0.3 range ?
+	#make sure nothing is within a 0.3 range
+	'''
+	#### Just some issues ####
 	
-	#first checks loop compares all cfs to target cf 
-	maxdisp = 0.05
+	first checks loop compares all cfs to target cf 
+	second checks loop compares all cfs to all cfs (not including target assuming it should already be out of the way) 
+		two for loops one after another isn't checking both one after the other for some reason?
+		or it is just the adjustments are happening at a weird pace because once the others adjust
+	they end up coming back towards the target to avoid the other cfs (and end up too near again)
+	 but because of loop sequences, they don't adjust back until the next command is provided
+	
+	TODO: Do this on ROS so that they can run as individual nodes simultaneously
+	
+	This is all a bit weird right now and doesn't necessarily work too well lol 
+	it looks like it works ish but the desire_disp equation isn't being used at all because the values it generates are ridiculously large
+	so it's never smaller than the maxdisp but if the maxdisp were bigger it would be impractical for the movements of the cfs
+	need to find a different equation for desired_disp that will generate slightly larger numbers when the dist is very small 
+	but relatively smaller numbers when the dist is bigger (but still smaller than the maintaining distance) 
+	
+	Also because the loops are separate and done one after the other and go through the CFs in numerical order
+	It doesn't do a cross check if the distances are too near after adjusting for the previous movement of the target
+	so if one cf adjusted because it was too near another cf but by doing that ended up near another cf that came before it 
+	in the checking sequence, it wouldn't know that it was too near that later one
+	
+	It starts working better once everything is already spread out because the starting grid is already pretty tight
+	it doesn't pick up on how near they are after the first movement which pushes back and affects the reactions the rest of the way
+	until a more spread formation is created then they start behaving more ideally
+	'''
+	maxdisp = 0.4
 	
 	for cf in cfs:
 		othercf = cf.id 
 		if othercf != targetCFid:
 			dist = distance.euclidean(np.array(targetCF.position()), np.array(allcfs.crazyfliesById[othercf].position()))
-			if dist <= 0.5 and dist > 0.0:
+			if dist <= 0.4:
 				#print 'CF',othercf,"is too close to target", dist
 				cfpos = np.array(cf.position())
 				tarpos = np.array(targetCF.position())
 				delta = cfpos - tarpos
 				delta_unit = delta / (dist)
-				desired_disp = 1.5 / (dist + m.pow(dist, 2))
+				desired_disp = 0.15 / (dist + m.pow(dist, 2))
 				disp = np.min([desired_disp, maxdisp])
-				print othercf, disp
+				print 'target to', othercf, disp
 				allcfs.crazyfliesById[othercf].goTo(np.array(cf.position()) + np.array(disp * delta_unit), 0, spd)
-	
-	#second checks loop compares all cfs to all cfs (not including target assuming it should already be out of the way) 
-	### two for loops one after another isn't checking both one after the other for some reason?
-	for cf in cfs: #baseCF row i
-		basecf = cf.id
-		for cf in cfs: #comparedCF row j
-			currentcf = cf.id
-			if currentcf != basecf and currentcf != targetCFid: #skips itself and target
-				dist = distance.euclidean(np.array(allcfs.crazyfliesById[basecf].position()), np.array(allcfs.crazyfliesById[currentcf].position()))
-				if dist <= 0.3:
-					#print 'CF', basecf, 'is too close to CF', currentcf
-					currpos = np.array(allcfs.crazyfliesById[currentcf].position())
-					basepos = np.array(allcfs.crazyfliesById[basecf].position())
-					delta = currpos - basepos
-					delta_unit = delta / dist
-					print delta_unit
-					desired_disp = 1.5 / (dist + m.pow(dist, 2))
-					disp = np.min([desired_disp, maxdisp])
-					print desired_disp
-					print currentcf, disp
-					allcfs.crazyfliesById[currentcf].goTo(np.array(cf.position()) + np.array(disp * delta_unit), 0, spd)
+			else: ##maybe reverse other and base??? hmmmm ToTry 
+				for cf in cfs: #baseCF row i
+					basecf = cf.id
+					if othercf != basecf and basecf != targetCFid: #skips itself and target
+						otherdist = distance.euclidean(np.array(allcfs.crazyfliesById[basecf].position()), np.array(allcfs.crazyfliesById[othercf].position()))
+						if otherdist < 0.4:
+							#print 'CF', basecf, 'is too close to CF', currentcf
+							currpos = np.array(allcfs.crazyfliesById[othercf].position())
+							basepos = np.array(allcfs.crazyfliesById[basecf].position())
+							delta = currpos - basepos
+							delta_unit = delta / otherdist
+							#print delta_unit
+							desired_disp = 0.15 / (otherdist + m.pow(otherdist, 2))
+							disp = np.min([desired_disp, maxdisp])
+							#print desired_disp
+							print 'cf', othercf, basecf, disp
+							allcfs.crazyfliesById[othercf].goTo(currpos + np.array(disp * delta_unit), 0, spd)
+			
+		
 
 
 def randHeights():
+	##something isn't working here anymore????
+	## also not working in CFdemo script
+	# something changed somewhere?????? figure that out ugh
+	### my dumbass just forgot to make them takeoff instead of goTo :<<<
 	rand_heights = None
-
-	if len(cfs) > 1:
+	
+	
+	if int(len(cfs)) > 1:
 		rand_heights = [random.random() for cf in cfs]
 		lowest = min(rand_heights)
 		highest = max(rand_heights)
@@ -192,16 +230,18 @@ def randHeights():
 			rand_heights[i] = scale * (rand_heights[i] - lowest) + MIN_HEIGHT
 	else:
 		rand_heights = [1.0]
+	
+	print rand_heights
 
 	heights = {}
 	for cf, height in zip(cfs, rand_heights):
 		heights[cf] = height
 		
-	for cf in allcfs.crazyflies:
+	for cf in cfs:
 		startHoverMatrix = np.array(cf.initialPosition) + np.array([0, 0, heights[cf]])
-		cf.goTo(startHoverMatrix, 0, 2.0)
+		cf.takeoff(targetHeight=heights[cf], duration=3.0)
 
-	timeHelper.sleep(2.0) 
+	timeHelper.sleep(3.0) 
 
 def hoverCallback():	
 	allcfs.takeoff(targetHeight=1.0, duration=3.0)
