@@ -207,6 +207,7 @@ public:
     m_serviceGoTo = n.advertiseService(tf_prefix + "/go_to", &CrazyflieROS::goTo, this);
     m_serviceSetGroupMask = n.advertiseService(tf_prefix + "/set_group_mask", &CrazyflieROS::setGroupMask, this);
 
+    m_subscribeCmdVel = n.subscribe(tf_prefix + "/cmd_vel", 1, &CrazyflieROS::cmdVelChanged, this);
     m_subscribeCmdPosition = n.subscribe(tf_prefix + "/cmd_position", 1, &CrazyflieROS::cmdPositionSetpoint, this);
     m_subscribeCmdFullState = n.subscribe(tf_prefix + "/cmd_full_state", 1, &CrazyflieROS::cmdFullStateSetpoint, this);
     m_subscribeCmdStop = n.subscribe(m_tf_prefix + "/cmd_stop", 1, &CrazyflieROS::cmdStop, this);
@@ -296,7 +297,7 @@ public:
 public:
 
   template<class T, class U>
-  void updateParam(uint8_t id, const std::string& ros_param) {
+  void updateParam(uint16_t id, const std::string& ros_param) {
       U value;
       ros::param::get(ros_param, value);
       m_cf.addSetParam<T>(id, (T)value);
@@ -436,6 +437,21 @@ public:
     return true;
   }
 
+  void cmdVelChanged(
+    const geometry_msgs::Twist::ConstPtr& msg)
+  {
+    // if (!m_isEmergency) {
+      float roll = msg->linear.y;
+      float pitch = -msg->linear.x;
+      float yawrate = msg->angular.z;
+      uint16_t thrust = (uint16_t)msg->linear.z;
+
+      m_cf.sendSetpoint(roll, pitch, yawrate, thrust);
+      // ROS_INFO("cmdVel %f %f %f %d (%f)", roll, pitch, yawrate, thrust, msg->linear.z);
+      // m_sentSetpoint = true;
+    // }
+  }
+
   void cmdPositionSetpoint(
     const crazyflie_driver::Position::ConstPtr& msg)
   {
@@ -509,6 +525,7 @@ public:
 
     m_cf.logReset();
 
+    int numParams = 0;
     if (m_enableParameters)
     {
       ROS_INFO("[%s] Requesting parameters...", m_frame.c_str());
@@ -539,6 +556,7 @@ public:
             ros::param::set(paramName, m_cf.getParam<float>(entry.id));
             break;
         }
+        ++numParams;
       }
       ros::NodeHandle n;
       n.setCallbackQueue(&queue);
@@ -546,7 +564,7 @@ public:
     }
     auto end1 = std::chrono::system_clock::now();
     std::chrono::duration<double> elapsedSeconds1 = end1-start;
-    ROS_INFO("[%s] reqParamTOC: %f s", m_frame.c_str(), elapsedSeconds1.count());
+    ROS_INFO("[%s] reqParamTOC: %f s (%d params)", m_frame.c_str(), elapsedSeconds1.count(), numParams);
 
     // Logging
     if (m_enableLogging) {
@@ -597,15 +615,15 @@ public:
   }
 
   void onConsole(const char* msg) {
-    static std::string messageBuffer;
-    messageBuffer += msg;
-    size_t pos = messageBuffer.find('\n');
+    m_messageBuffer += msg;
+    size_t pos = m_messageBuffer.find('\n');
     if (pos != std::string::npos) {
-      messageBuffer[pos] = 0;
-      ROS_INFO_NAMED(m_tf_prefix, "CF Console: %s", messageBuffer.c_str());
-      messageBuffer.erase(0, pos+1);
+      m_messageBuffer[pos] = 0;
+      ROS_INFO("[%s] %s", m_frame.c_str(), m_messageBuffer.c_str());
+      m_messageBuffer.erase(0, pos+1);
     }
   }
+
 
   void onLogCustom(uint32_t time_in_ms, std::vector<double>* values, void* userData) {
 
@@ -686,6 +704,7 @@ private:
   ros::ServiceServer m_serviceGoTo;
   ros::ServiceServer m_serviceSetGroupMask;
 
+  ros::Subscriber m_subscribeCmdVel;
   ros::Subscriber m_subscribeCmdPosition;
   ros::Subscriber m_subscribeCmdFullState;
   ros::Subscriber m_subscribeCmdStop;
@@ -699,6 +718,7 @@ private:
   std::ofstream m_logFile;
   bool m_forceNoCache;
   bool m_initializedPosition;
+  std::string m_messageBuffer;
 };
 
 
@@ -719,7 +739,6 @@ public:
     std::vector<libmotioncapture::Object>* pMocapObjects,
     int radio,
     int channel,
-    const std::string broadcastAddress,
     bool useMotionCaptureObjectTracking,
     const std::vector<crazyflie_driver::LogBlock>& logBlocks,
     std::string interactiveObject,
@@ -732,7 +751,7 @@ public:
     , m_pMarkers(pMarkers)
     , m_pMocapObjects(pMocapObjects)
     , m_slowQueue()
-    , m_cfbc("radio://" + std::to_string(radio) + "/" + std::to_string(channel) + "/2M/" + broadcastAddress)
+    , m_cfbc("radio://" + std::to_string(radio) + "/" + std::to_string(channel) + "/2M/FFE7E7E7E7")
     , m_isEmergency(false)
     , m_useMotionCaptureObjectTracking(useMotionCaptureObjectTracking)
     , m_br()
@@ -751,6 +770,9 @@ public:
     m_tracker->setLogWarningCallback(logWarn);
     if (writeCSVs) {
       m_outputCSVs.resize(m_cfs.size());
+      for (auto& output : m_outputCSVs) {
+        output.reset(new std::ofstream);
+      }
     }
   }
 
@@ -936,61 +958,50 @@ public:
     // }
   }
 
-  void nextPhase()
-  {
-      for (size_t i = 0; i < m_outputCSVs.size(); ++i) {
-        auto& file = *m_outputCSVs[i];
-        file.close();
-        file.open("cf" + std::to_string(m_cfs[i]->id()) + "_phase" + std::to_string(m_phase + 1) + ".csv");
-        file << "t,x,y,z,roll,pitch,yaw\n";
-      }
-      m_phase += 1;
-      m_phaseStart = std::chrono::system_clock::now();
-  }
-#if 0
+
+
   template<class T, class U>
-  void updateParam(uint8_t group, uint8_t id, Crazyflie::ParamType type, const std::string& ros_param) {
+  void updateParam(const char* group, const char* name, const std::string& ros_param) {
       U value;
       ros::param::get(ros_param, value);
-      m_cfbc.setParam<T>(group, id, type, (T)value);
+      m_cfbc.setParam<T>(group, name, (T)value);
   }
 
   void updateParams(
-    uint8_t group,
     const std::vector<std::string>& params)
   {
     for (const auto& p : params) {
-      std::string ros_param = "/cfgroup" + std::to_string((int)group) + "/" + p;
+      std::string ros_param = "/allcfs/" + p;
       size_t pos = p.find("/");
       std::string g(p.begin(), p.begin() + pos);
       std::string n(p.begin() + pos + 1, p.end());
 
-      // TODO: this assumes that all IDs are identically
-      //       should use byName lookup instead!
+      // This assumes that we can find the variable in the TOC of the first
+      // CF to find the type (the actual update is done by name)
       auto entry = m_cfs.front()->getParamTocEntry(g, n);
       if (entry)
       {
         switch (entry->type) {
           case Crazyflie::ParamTypeUint8:
-            updateParam<uint8_t, int>(group, entry->id, entry->type, ros_param);
+            updateParam<uint8_t, int>(g.c_str(), n.c_str(), ros_param);
             break;
           case Crazyflie::ParamTypeInt8:
-            updateParam<int8_t, int>(group, entry->id, entry->type, ros_param);
+            updateParam<int8_t, int>(g.c_str(), n.c_str(), ros_param);
             break;
           case Crazyflie::ParamTypeUint16:
-            updateParam<uint16_t, int>(group, entry->id, entry->type, ros_param);
+            updateParam<uint16_t, int>(g.c_str(), n.c_str(), ros_param);
             break;
           case Crazyflie::ParamTypeInt16:
-            updateParam<int16_t, int>(group, entry->id, entry->type, ros_param);
+            updateParam<int16_t, int>(g.c_str(), n.c_str(), ros_param);
             break;
           case Crazyflie::ParamTypeUint32:
-            updateParam<uint32_t, int>(group, entry->id, entry->type, ros_param);
+            updateParam<uint32_t, int>(g.c_str(), n.c_str(), ros_param);
             break;
           case Crazyflie::ParamTypeInt32:
-            updateParam<int32_t, int>(group, entry->id, entry->type, ros_param);
+            updateParam<int32_t, int>(g.c_str(), n.c_str(), ros_param);
             break;
           case Crazyflie::ParamTypeFloat:
-            updateParam<float, float>(group, entry->id, entry->type, ros_param);
+            updateParam<float, float>(g.c_str(), n.c_str(), ros_param);
             break;
         }
       }
@@ -999,7 +1010,6 @@ public:
       }
     }
   }
-#endif
 
 private:
 
@@ -1180,22 +1190,31 @@ private:
     // char dummy;
     // std::cin >> dummy;
 
-    // update global and type-specific parameters
-    std::vector<std::string> paramLocations;
-    paramLocations.push_back("firmwareParams");
-    paramLocations.push_back("crazyflieTypes/" + cf->type() + "/firmwareParams");
+    // update global, type-specific, and CF-specific parameters
+    std::vector<XmlRpc::XmlRpcValue> firmwareParamsVec(2);
+    n.getParam("firmwareParams", firmwareParamsVec[0]);
+    nGlobal.getParam("crazyflieTypes/" + cf->type() + "/firmwareParams", firmwareParamsVec[1]);
+
+    XmlRpc::XmlRpcValue crazyflies;
+    nGlobal.getParam("crazyflies", crazyflies);
+    ROS_ASSERT(crazyflies.getType() == XmlRpc::XmlRpcValue::TypeArray);
+    for (int32_t i = 0; i < crazyflies.size(); ++i) {
+      ROS_ASSERT(crazyflies[i].getType() == XmlRpc::XmlRpcValue::TypeStruct);
+      XmlRpc::XmlRpcValue crazyflie = crazyflies[i];
+      int id = crazyflie["id"];
+      if (id == cf->id()) {
+        if (crazyflie.hasMember("firmwareParams")) {
+          firmwareParamsVec.push_back(crazyflie["firmwareParams"]);
+        }
+        break;
+      }
+    }
+
 
     crazyflie_driver::UpdateParams::Request request;
     crazyflie_driver::UpdateParams::Response response;
 
-    for (const auto& paramLocation : paramLocations) {
-      XmlRpc::XmlRpcValue firmwareParams;
-      if (paramLocation == "firmwareParams") {
-        n.getParam(paramLocation, firmwareParams);
-      } else {
-        nGlobal.getParam(paramLocation, firmwareParams);
-      }
-
+    for (auto& firmwareParams : firmwareParamsVec) {
       // ROS_ASSERT(firmwareParams.getType() == XmlRpc::XmlRpcValue::TypeArray);
       auto iter = firmwareParams.begin();
       for (; iter != firmwareParams.end(); ++iter) {
@@ -1265,7 +1284,6 @@ public:
     , m_serviceTakeoff()
     , m_serviceLand()
     , m_serviceGoTo()
-    , m_serviceNextPhase()
     , m_lastInteractiveObjectPosition(-10, -10, 1)
     , m_broadcastingNumRepeats(15)
     , m_broadcastingDelayBetweenRepeatsMs(1)
@@ -1279,8 +1297,7 @@ public:
     m_serviceLand = nh.advertiseService("land", &CrazyflieServer::land, this);
     m_serviceGoTo = nh.advertiseService("go_to", &CrazyflieServer::goTo, this);
 
-    m_serviceNextPhase = nh.advertiseService("next_phase", &CrazyflieServer::nextPhase, this);
-    // m_serviceUpdateParams = nh.advertiseService("update_params", &CrazyflieServer::updateParams, this);
+    m_serviceUpdateParams = nh.advertiseService("update_params", &CrazyflieServer::updateParams, this);
 
     m_pubPointCloud = nh.advertise<sensor_msgs::PointCloud>("pointCloud", 1);
 
@@ -1337,7 +1354,6 @@ public:
     readDynamicsConfigurations(dynamicsConfigurations);
     readChannels(channels);
 
-    std::string broadcastAddress;
     bool useMotionCaptureObjectTracking;
     std::string logFilePath;
     std::string interactiveObject;
@@ -1350,7 +1366,6 @@ public:
     std::string objectTrackingType;
     nl.getParam("object_tracking_type", objectTrackingType);
     useMotionCaptureObjectTracking = (objectTrackingType == "motionCapture");
-    nl.getParam("broadcast_address", broadcastAddress);
     nl.param<std::string>("save_point_clouds", logFilePath, "");
     nl.param<std::string>("interactive_object", interactiveObject, "");
     nl.getParam("print_latency", printLatency);
@@ -1359,16 +1374,7 @@ public:
 
     nl.param<int>("broadcasting_num_repeats", m_broadcastingNumRepeats, 15);
     nl.param<int>("broadcasting_delay_between_repeats_ms", m_broadcastingDelayBetweenRepeatsMs, 1);
-
-    std::string firmware;
-    nl.param<std::string>("firmware", firmware, "crazyswarm");
-    if (firmware == "crazyswarm") {
-      sendPositionOnly = false;
-    } else if (firmware == "bitcraze") {
-      sendPositionOnly = true;
-    } else {
-      ROS_ERROR("Unknown firmware parameter (%s)!", firmware.c_str());
-    }
+    nl.param<bool>("send_position_only", sendPositionOnly, false);
 
     // tilde-expansion
     wordexp_t wordexp_result;
@@ -1500,7 +1506,6 @@ public:
                 &mocapObjects,
                 radio,
                 channel,
-                broadcastAddress,
                 useMotionCaptureObjectTracking,
                 logBlocks,
                 interactiveObject,
@@ -1786,24 +1791,12 @@ private:
       for (auto& group : m_groups) {
         group->startTrajectory(req.trajectoryId, req.timescale, req.reversed, req.groupMask);
       }
-      std::this_thread::sleep_for(std::chrono::milliseconds(3));
+      std::this_thread::sleep_for(std::chrono::milliseconds(m_broadcastingDelayBetweenRepeatsMs));
     }
 
     return true;
   }
 
-  bool nextPhase(
-    std_srvs::Empty::Request& req,
-    std_srvs::Empty::Response& res)
-  {
-    ROS_INFO("NextPhase!");
-    for (auto& group : m_groups) {
-      group->nextPhase();
-    }
-
-    return true;
-  }
-#if 0
   bool updateParams(
     crazyflie_driver::UpdateParams::Request& req,
     crazyflie_driver::UpdateParams::Response& res)
@@ -1812,14 +1805,14 @@ private:
 
     for (size_t i = 0; i < m_broadcastingNumRepeats; ++i) {
       for (auto& group : m_groups) {
-        group->updateParams(req.group, req.params);
+        group->updateParams(req.params);
       }
       std::this_thread::sleep_for(std::chrono::milliseconds(m_broadcastingDelayBetweenRepeatsMs));
     }
 
     return true;
   }
-#endif
+
 //
   void readMarkerConfigurations(
     std::vector<libobjecttracker::MarkerConfiguration>& markerConfigurations)
@@ -1898,7 +1891,6 @@ private:
   ros::ServiceServer m_serviceTakeoff;
   ros::ServiceServer m_serviceLand;
   ros::ServiceServer m_serviceGoTo;
-  ros::ServiceServer m_serviceNextPhase;
   ros::ServiceServer m_serviceUpdateParams;
 
   ros::Publisher m_pubPointCloud;

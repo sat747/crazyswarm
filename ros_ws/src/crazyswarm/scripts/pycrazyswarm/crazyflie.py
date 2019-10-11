@@ -18,17 +18,13 @@ def arrayToGeometryPoint(a):
 
 class TimeHelper:
     def __init__(self):
-        rospy.wait_for_service("/next_phase")
-        self.nextPhase = rospy.ServiceProxy("/next_phase", Empty)
+        pass
 
     def time(self):
         return time.time()
 
     def sleep(self, duration):
         time.sleep(duration)
-
-    def nextPhase(self):
-        self.nextPhase()
 
 
 class Crazyflie:
@@ -63,6 +59,8 @@ class Crazyflie:
         self.cmdFullStateMsg.header.frame_id = "/world"
 
         self.cmdStopPublisher = rospy.Publisher(prefix + "/cmd_stop", std_msgs.msg.Empty, queue_size=1)
+
+        self.cmdVelPublisher = rospy.Publisher(prefix + "/cmd_vel", geometry_msgs.msg.Twist, queue_size=1)
 
     def setGroupMask(self, groupMask):
         self.setGroupMaskService(groupMask)
@@ -133,6 +131,14 @@ class Crazyflie:
     def cmdStop(self):
         self.cmdStopPublisher.publish(std_msgs.msg.Empty())
 
+    def cmdVel(self, roll, pitch, yawrate, thrust):
+        msg = geometry_msgs.msg.Twist()
+        msg.linear.x = pitch
+        msg.linear.y = roll
+        msg.angular.z = yawrate
+        msg.linear.z = thrust
+        self.cmdVelPublisher.publish(msg)
+
     #
     # wrappers around the parameter setting system for common cases
     #
@@ -162,8 +168,8 @@ class CrazyflieServer:
         self.goToService = rospy.ServiceProxy("/go_to", GoTo)
         rospy.wait_for_service("/start_trajectory");
         self.startTrajectoryService = rospy.ServiceProxy("/start_trajectory", StartTrajectory)
-        # rospy.wait_for_service("/update_params")
-        # self.updateParamsService = rospy.ServiceProxy("/update_params", UpdateParams)
+        rospy.wait_for_service("/update_params")
+        self.updateParamsService = rospy.ServiceProxy("/update_params", UpdateParams)
 
         with open("../launch/crazyflies.yaml", 'r') as ymlfile:
             cfg = yaml.load(ymlfile)
@@ -198,6 +204,6 @@ class CrazyflieServer:
     def startTrajectory(self, trajectoryId, timescale = 1.0, reverse = False, relative = True, groupMask = 0):
         self.startTrajectoryService(groupMask, trajectoryId, timescale, reverse, relative)
 
-    # def setParam(self, name, value, group = 0):
-    #     rospy.set_param("/cfgroup" + str(group) + "/" + name, value)
-    #     self.updateParamsService(group, [name])
+    def setParam(self, name, value):
+        rospy.set_param("/allcfs/" + name, value)
+        self.updateParamsService([name])
